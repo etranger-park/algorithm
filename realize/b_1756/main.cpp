@@ -1,90 +1,60 @@
+#include <stdio.h>
 #include <iostream>
-#include <cstdio>
-#include <cstdlib>
+#include <vector>
 #include <map>
-#include <set>
 
 using namespace std;
 
-map<int,int> min_map; //(min -> locate)
-
-int up(int a)
-{
-    int h,new_val;
-    map<int,int>::iterator it_map;
-    set<int>::iterator it_set;
-    if(a<= min_map.begin()->first) it_map = min_map.begin();
-    else
-    {
-        for(it_map = min_map.end();it_map != min_map.begin();)
-        {
-            it_map--;
-            int d_r = it_map->first;
-            if(d_r == a) break;
-            else if(d_r > a) continue;
-            else
-            {
-                it_map++;
-                break;
-            }
-        }
-    }
-    h = it_map -> second;
-
-    if(it_map != min_map.begin())
-        min_map.erase(min_map.begin(),it_map);
-
-    new_val = h;
-    min_map[it_map -> first] = --new_val;
-
-    if(++it_map == min_map.end()) return -1;
-
-    if(it_map->first == new_val)
-    {
-     //¾Æ·¡ºÎÅÍ ½×¾Æ ¿Ã·Á¼­ ÇØ´ç ÆøÀ» °¡Áö´Â ¾Ö°¡ °¡µæ Ã¡À» ¶§
-        min_map.erase(--it_map);
-    }
-    return h;
-}
-
 int main()
 {
-    int radius,d, n,i,max_h,min_val = 2000000000;
-    scanf("%d %d",&d,&n);
-    int *d_min = (int *) malloc(sizeof(int)*d);
-    map<int,int>::iterator it_map;
+  int D,N;
+  cin >> D >> N;
+  int oven[D+100];
+  map<int, pair<int, int> > change_point; // min_dia, (height, depth)
+  map<int, pair<int, int> >::iterator change_it;
 
-    for(i=0;i<d;i++)
+  int min_dia;
+  cin >> min_dia;
+  int depth = 1;
+  int start = 1;
+  for(int i = 2; i <= D; i++)
+  {
+    int dia;
+    cin >> dia;
+    if(min_dia > dia)
     {
-        scanf("%d",&radius);
-        if(min_val > radius)
-        {
-            min_map.insert(pair<int,int>(min_val,i-1));
-            min_val = radius;
-
-        }
-        *(d_min + i) = min_val;
+      change_point.insert(make_pair(min_dia, make_pair(start, depth)));
+      depth = 0;
+      start = i;
+      min_dia = dia;
     }
+    depth ++;
+    oven[i] = min_dia;
+  }
+  change_point.insert(make_pair(min_dia, make_pair(start, depth))); // ë§ˆì§€ë§‰ ì²˜ë¦¬
 
-    min_map.insert(pair<int,int>(min_val,i-1)); // insert the last min value
-    /*
-    for(it_map =min_map.begin();it_map!=min_map.end();it_map++)
+  // for(change_it = change_point.begin(); change_it != change_point.end();change_it ++)
+  // {
+  //   cout << "point dia:" << change_it->first <<" when height:"<< change_it->second.first << "depth: "<<change_it->second.second<<endl;
+  // }
+  int result;
+  for(int i = 0; i < N; i++)
+  {
+    int dia;
+    cin >> dia;
+    change_it = change_point.upper_bound(dia - 1); // ê°™ì€ í¬ê¸°ë„ ì°¾ì•„ì•¼ í•¨ìœ¼ë¡œ.
+    if(change_it == change_point.end())
     {
-        printf("min: %d -> locate: %d\n",it_map->first,it_map->second);
-    }*/
-
-    for(i=0;i<n;i++)
-    {
-        scanf("%d",&radius);
-        max_h = up(radius);
-        if(max_h == -1)
-        {
-            printf("0");
-            return 0;
-        }
-        //printf("%d: r=%d h=%d\n",i,n_val,max_h);
+      result = 0;
+      break;
     }
-    printf("%d",max_h+1);
-
-    return 0;
+    if(change_it != change_point.begin())
+      change_point.erase(change_point.begin(), change_it);
+    change_it->second.second --;
+    result = change_it->second.first + change_it->second.second;
+    // cout << result << endl;
+    if(change_it->second.second == 0) change_point.erase(change_it);
+  }
+  cout << result << endl;
+  return 0;
 }
